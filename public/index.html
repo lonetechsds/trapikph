@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrapikPH — Real-Time Traffic & Route Planner</title>
+<meta name="description" content="Community-driven traffic reports and route planning for Philippine roads. Free, real-time, crowd-sourced.">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0f1a;color:#e2e8f0;font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* Animated road lines background */
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.road-line{position:absolute;width:3px;background:linear-gradient(to bottom,transparent,rgba(34,197,94,0.3),transparent);animation:roadMove var(--d,6s) var(--del,0s) linear infinite}
+@keyframes roadMove{0%{transform:translateY(-100vh)}100%{transform:translateY(100vh)}}
+
+/* Nav */
+.nav{position:relative;z-index:10;display:flex;align-items:center;padding:16px 24px;background:rgba(10,15,26,0.85);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,0.04)}
+.brand{display:flex;align-items:center;gap:8px;font-size:1.1rem;font-weight:900}
+.brand .icon{width:32px;height:32px;background:linear-gradient(135deg,#22c55e,#16a34a);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem}
+.brand .name span{color:#22c55e}
+.brand .name .ph{color:#ef4444}
+.nav-link{margin-left:auto;padding:8px 20px;border-radius:8px;background:#22c55e;color:#0a0f1a;font-weight:700;font-size:0.85rem;text-decoration:none;transition:0.2s}
+.nav-link:hover{background:#16a34a}
+
+/* Hero */
+.hero{position:relative;z-index:10;text-align:center;padding:80px 24px 50px;max-width:700px;margin:0 auto}
+.hero-badge{display:inline-block;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);padding:6px 16px;border-radius:20px;font-size:0.72rem;font-weight:700;color:#22c55e;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:20px}
+.hero h1{font-size:clamp(2rem,6vw,3.2rem);font-weight:900;line-height:1.15;margin-bottom:16px}
+.hero h1 .green{color:#22c55e}
+.hero h1 .red{color:#ef4444}
+.hero p{font-size:1.05rem;color:rgba(255,255,255,0.5);line-height:1.6;margin-bottom:30px}
+.hero-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn-primary{padding:14px 32px;border-radius:12px;background:#22c55e;color:#0a0f1a;font-weight:800;font-size:1rem;text-decoration:none;transition:0.2s;border:none;cursor:pointer;font-family:'Inter',sans-serif}
+.btn-primary:hover{background:#16a34a;transform:translateY(-1px)}
+.btn-secondary{padding:14px 32px;border-radius:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#e2e8f0;font-weight:700;font-size:1rem;text-decoration:none;transition:0.2s;cursor:pointer;font-family:'Inter',sans-serif}
+.btn-secondary:hover{background:rgba(255,255,255,0.08)}
+
+/* Features */
+.features{position:relative;z-index:10;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;padding:20px 24px 60px;max-width:900px;margin:0 auto}
+.feat{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);border-radius:14px;padding:24px;text-align:center;transition:0.2s}
+.feat:hover{border-color:rgba(34,197,94,0.2);background:rgba(34,197,94,0.03)}
+.feat-icon{font-size:1.8rem;margin-bottom:10px}
+.feat h3{font-size:0.92rem;font-weight:800;margin-bottom:6px;color:#fff}
+.feat p{font-size:0.78rem;color:rgba(255,255,255,0.4);line-height:1.5}
+
+/* Report types strip */
+.types{position:relative;z-index:10;max-width:700px;margin:0 auto;padding:0 24px 50px}
+.types h2{text-align:center;font-size:1.1rem;font-weight:800;margin-bottom:20px;color:rgba(255,255,255,0.6)}
+.type-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px}
+.type-tag{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 8px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);font-size:0.68rem;font-weight:700;color:rgba(255,255,255,0.5)}
+.type-tag .t-icon{font-size:1.5rem}
+
+/* How it works */
+.how{position:relative;z-index:10;max-width:700px;margin:0 auto;padding:0 24px 60px}
+.how h2{text-align:center;font-size:1.1rem;font-weight:800;margin-bottom:24px;color:rgba(255,255,255,0.6)}
+.steps{display:flex;flex-direction:column;gap:12px}
+.step{display:flex;align-items:center;gap:14px;padding:16px;border-radius:12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04)}
+.step-num{min-width:36px;height:36px;border-radius:50%;background:rgba(34,197,94,0.12);color:#22c55e;font-weight:900;font-size:0.9rem;display:flex;align-items:center;justify-content:center}
+.step-text{font-size:0.85rem;color:rgba(255,255,255,0.6);line-height:1.4}
+.step-text strong{color:#fff}
+
+/* Footer */
+.footer{position:relative;z-index:10;text-align:center;padding:30px;border-top:1px solid rgba(255,255,255,0.04)}
+.footer-brand{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px}
+.footer-brand .f-icon{width:20px;height:20px;background:#4f46e5;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.5rem;font-weight:900;color:rgba(255,255,255,0.8)}
+.footer-brand .f-text{font-size:0.7rem;color:rgba(255,255,255,0.2)}
+.footer .copy{font-size:0.62rem;color:rgba(255,255,255,0.12)}
+</style>
+</head>
+<body>
+
+<div class="bg" id="bg"></div>
+
+<nav class="nav">
+  <div class="brand">
+    <div class="icon">🚦</div>
+    <div class="name"><span>Trapik</span><span class="ph">PH</span></div>
+  </div>
+  <a href="/app.html" class="nav-link">Open Map →</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">🇵🇭 Built for Philippine Roads</div>
+  <h1>Know the <span class="red">traffic</span> before you <span class="green">go</span></h1>
+  <p>Community-driven traffic reports and smart route planning. Real-time, crowd-sourced, and 100% free. Report what you see, help fellow commuters.</p>
+  <div class="hero-btns">
+    <a href="/app.html" class="btn-primary">🗺 Open Map</a>
+    <a href="#how" class="btn-secondary">How It Works</a>
+  </div>
+</div>
+
+<div class="features">
+  <div class="feat">
+    <div class="feat-icon">📍</div>
+    <h3>Live Reports</h3>
+    <p>See real-time traffic, accidents, floods, and road closures reported by fellow drivers</p>
+  </div>
+  <div class="feat">
+    <div class="feat-icon">🛣</div>
+    <h3>Smart Routes</h3>
+    <p>Get optimized route suggestions that factor in crowd-sourced traffic conditions</p>
+  </div>
+  <div class="feat">
+    <div class="feat-icon">⚡</div>
+    <h3>Instant Updates</h3>
+    <p>Reports appear on the map in real-time — no refresh needed, powered by WebSockets</p>
+  </div>
+  <div class="feat">
+    <div class="feat-icon">🤝</div>
+    <h3>Community Powered</h3>
+    <p>Every report helps. Upvote to confirm, report to warn — together we beat traffic</p>
+  </div>
+</div>
+
+<div class="types">
+  <h2>Report Types</h2>
+  <div class="type-grid">
+    <div class="type-tag"><span class="t-icon">🚗</span> Traffic</div>
+    <div class="type-tag"><span class="t-icon">💥</span> Accident</div>
+    <div class="type-tag"><span class="t-icon">🌊</span> Flood</div>
+    <div class="type-tag"><span class="t-icon">🚧</span> Closure</div>
+    <div class="type-tag"><span class="t-icon">👮</span> Police</div>
+    <div class="type-tag"><span class="t-icon">⚠️</span> Hazard</div>
+    <div class="type-tag"><span class="t-icon">🔨</span> Construction</div>
+  </div>
+</div>
+
+<div class="how" id="how">
+  <h2>How It Works</h2>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-text"><strong>Open the map</strong> — your location is detected automatically</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-text"><strong>See live reports</strong> — traffic, accidents, floods from other users nearby</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-text"><strong>Plan your route</strong> — enter a destination to get the best way there</div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-text"><strong>Report what you see</strong> — tap to pin a report and help others avoid the same spot</div></div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-brand">
+    <div class="f-icon">L</div>
+    <div class="f-text">Powered by Lonetech Software & Development Services</div>
+  </div>
+  <div class="copy">© 2026 TrapikPH — Free & Open Source</div>
+</footer>
+
+<script>
+// Animated road lines
+const bg = document.getElementById('bg');
+for (let i = 0; i < 8; i++) {
+  const line = document.createElement('div');
+  line.className = 'road-line';
+  const h = 40 + Math.random() * 120;
+  line.style.cssText = `height:${h}px;left:${5+Math.random()*90}%;--d:${4+Math.random()*5}s;--del:${Math.random()*4}s;opacity:${0.3+Math.random()*0.4}`;
+  if (Math.random() < 0.3) line.style.background = 'linear-gradient(to bottom,transparent,rgba(239,68,68,0.25),transparent)';
+  else if (Math.random() < 0.3) line.style.background = 'linear-gradient(to bottom,transparent,rgba(250,204,21,0.25),transparent)';
+  bg.appendChild(line);
+}
+</script>
+</body>
+</html>
