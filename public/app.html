@@ -318,8 +318,8 @@ searchInput.addEventListener('focus', () => {
   if (searchResults.children.length) searchResults.classList.add('show');
 });
 document.addEventListener('click', e => {
-  if (!e.target.closest('.search-box')) searchResults.classList.remove('show');
-  if (!e.target.closest('.route-panel')) document.getElementById('rpResults').classList.remove('show');
+  if (!e.target.closest('.search-box') && !e.target.closest('.search-results')) searchResults.classList.remove('show');
+  if (!e.target.closest('.route-panel') && !e.target.closest('.rp-results')) document.getElementById('rpResults').classList.remove('show');
 });
 
 async function geocode(q, container, onSelect) {
@@ -331,7 +331,11 @@ async function geocode(q, container, onSelect) {
     ).join('');
     container.classList.toggle('show', data.length > 0);
     container.querySelectorAll('.sr-item').forEach(item => {
-      item.onclick = () => onSelect(item.dataset);
+      // Use pointerdown — fires before blur on mobile so the dropdown stays open
+      item.addEventListener('pointerdown', (e) => {
+        e.preventDefault(); // prevent input blur
+        onSelect(item.dataset);
+      });
     });
   } catch {}
 }
