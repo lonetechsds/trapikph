@@ -109,6 +109,36 @@ body{font-family:'Inter',sans-serif;background:#0a0f1a;overflow:hidden}
 .leaflet-control-attribution{background:rgba(10,15,26,0.7)!important;color:rgba(255,255,255,0.2)!important}
 .leaflet-control-attribution a{color:rgba(255,255,255,0.3)!important}
 
+/* Navigation HUD */
+.nav-hud{position:fixed;bottom:0;left:0;right:0;z-index:1200;background:rgba(10,15,26,0.95);backdrop-filter:blur(12px);border-top:2px solid #22c55e;padding:0;transform:translateY(100%);transition:0.3s ease}
+.nav-hud.show{transform:translateY(0)}
+.nav-instruction{background:rgba(34,197,94,0.1);padding:14px 16px;display:flex;align-items:center;gap:12px}
+.nav-instruction .nav-arrow{font-size:1.6rem;min-width:36px;text-align:center}
+.nav-instruction .nav-step{font-size:0.88rem;font-weight:700;color:#fff;line-height:1.3;flex:1}
+.nav-instruction .nav-step-dist{font-size:0.7rem;color:rgba(255,255,255,0.4);font-weight:600;margin-top:2px}
+.nav-stats{display:flex;padding:12px 16px;gap:8px}
+.nav-stat{flex:1;text-align:center}
+.nav-stat .ns-val{font-size:1.2rem;font-weight:900;color:#22c55e}
+.nav-stat .ns-label{font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.06em}
+.nav-stat.eta .ns-val{color:#f59e0b}
+.nav-stop{padding:8px 16px 14px;display:flex;gap:8px}
+.nav-stop-btn{flex:1;padding:10px;border-radius:8px;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);color:#ef4444;font-weight:800;font-size:0.8rem;cursor:pointer;font-family:'Inter',sans-serif;text-align:center}
+.nav-stop-btn:active{background:rgba(239,68,68,0.2)}
+.nav-recenter{padding:10px 16px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);font-weight:700;font-size:0.8rem;cursor:pointer;font-family:'Inter',sans-serif}
+
+/* Navigation pulsing dot */
+.nav-marker{width:20px;height:20px;position:relative}
+.nav-marker-dot{width:20px;height:20px;border-radius:50%;background:#3b82f6;border:3px solid #fff;box-shadow:0 0 12px rgba(59,130,246,0.5);position:absolute;z-index:2}
+.nav-marker-pulse{width:20px;height:20px;border-radius:50%;background:rgba(59,130,246,0.25);position:absolute;z-index:1;animation:navPulse 2s infinite}
+.nav-marker-heading{width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:18px solid rgba(59,130,246,0.5);position:absolute;top:-14px;left:2px;z-index:1;transform-origin:center bottom}
+@keyframes navPulse{0%{transform:scale(1);opacity:0.6}100%{transform:scale(3);opacity:0}}
+
+/* Start nav button in route cards */
+.ri-start{display:inline-block;margin-top:4px;padding:4px 10px;border-radius:6px;background:#22c55e;color:#0a0f1a;font-weight:800;font-size:0.65rem;cursor:pointer;border:none;font-family:'Inter',sans-serif}
+.ri-start:active{opacity:0.8}
+
+body.navigating .topbar,body.navigating .fab,body.navigating .fab-route,body.navigating .report-count,body.navigating .route-panel{display:none!important}
+
 @media(max-width:500px){
   .route-panel{left:8px;right:8px;width:auto}
 }
@@ -180,6 +210,26 @@ body{font-family:'Inter',sans-serif;background:#0a0f1a;overflow:hidden}
   </div>
 </div>
 
+<!-- Navigation HUD -->
+<div class="nav-hud" id="navHud">
+  <div class="nav-instruction">
+    <div class="nav-arrow" id="navArrow">⬆️</div>
+    <div>
+      <div class="nav-step" id="navStep">Head north</div>
+      <div class="nav-step-dist" id="navStepDist"></div>
+    </div>
+  </div>
+  <div class="nav-stats">
+    <div class="nav-stat"><div class="ns-val" id="navEta">--</div><div class="ns-label">ETA</div></div>
+    <div class="nav-stat"><div class="ns-val" id="navDist">--</div><div class="ns-label">Remaining</div></div>
+    <div class="nav-stat"><div class="ns-val" id="navSpeed">--</div><div class="ns-label">km/h</div></div>
+  </div>
+  <div class="nav-stop">
+    <button class="nav-recenter" onclick="navRecenter()">📍 Re-center</button>
+    <button class="nav-stop-btn" onclick="stopNavigation()">✕ End Navigation</button>
+  </div>
+</div>
+
 <div class="map-footer">Powered by Lonetech Software</div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -209,6 +259,18 @@ let startCoord = null, endCoord = null;
 let selectedType = null, selectedSev = 'low';
 let activeRpInput = null;
 let searchTimeout = null;
+
+// Navigation state
+let navActive = false;
+let navWatchId = null;
+let navRoute = null;
+let navSteps = [];
+let navCurrentStep = 0;
+let navMarker = null;
+let navTotalDist = 0;
+let navTotalDur = 0;
+let navRouteCoords = [];
+let lastHeading = 0;
 
 // Report type config
 const TYPE_CONFIG = {
@@ -335,6 +397,7 @@ async function calcRoute() {
     const info = document.getElementById('routeInfo');
     info.innerHTML = '';
     const colors = ['#22c55e', '#3b82f6', '#f59e0b'];
+    _navRouteData = data.routes; // store for navigation
 
     data.routes.forEach((route, i) => {
       const dur = Math.round(route.duration / 60);
@@ -348,7 +411,8 @@ async function calcRoute() {
 
       const card = document.createElement('div');
       card.className = 'ri-card' + (i === 0 ? ' active' : '');
-      card.innerHTML = `<div class="ri-main"><span class="ri-time">${dur} min</span><span class="ri-dist">${dist} km</span></div><div class="ri-label">Route ${i + 1}${i === 0 ? ' — Fastest' : ''}</div>`;
+      card.innerHTML = `<div class="ri-main"><span class="ri-time">${dur} min</span><span class="ri-dist">${dist} km</span></div><div class="ri-label">Route ${i + 1}${i === 0 ? ' — Fastest' : ''}</div><button class="ri-start" onclick="event.stopPropagation();startNavigation(${i})">▶ Navigate</button>`;
+      card.dataset.routeIndex = i;
       card.onclick = () => {
         routeLines.forEach((l, j) => l.setStyle({ weight: j === i ? 5 : 3, opacity: j === i ? 0.9 : 0.4, dashArray: j === i ? null : '8 6' }));
         info.querySelectorAll('.ri-card').forEach(c => c.classList.remove('active'));
@@ -521,6 +585,220 @@ function escHtml(s) {
   const d = document.createElement('div');
   d.textContent = s;
   return d.innerHTML;
+}
+
+// ── Navigation ──
+let _navRouteData = []; // store raw route data from OSRM
+
+// Patch calcRoute to store route data
+const _origCalcRoute = calcRoute;
+
+function startNavigation(routeIndex) {
+  if (!_navRouteData[routeIndex]) return;
+  const route = _navRouteData[routeIndex];
+  navRoute = route;
+  navTotalDist = route.distance;
+  navTotalDur = route.duration;
+  navRouteCoords = route.geometry.coordinates.map(c => [c[1], c[0]]); // [lat,lng]
+  navActive = true;
+  navCurrentStep = 0;
+
+  // Build steps from OSRM legs
+  navSteps = [];
+  if (route.legs) {
+    route.legs.forEach(leg => {
+      if (leg.steps) {
+        leg.steps.forEach(step => {
+          navSteps.push({
+            instruction: step.maneuver?.modifier
+              ? formatManeuver(step.maneuver.type, step.maneuver.modifier)
+              : step.name || 'Continue',
+            name: step.name || '',
+            distance: step.distance,
+            duration: step.duration,
+            maneuver: step.maneuver,
+            startLat: step.maneuver?.location?.[1],
+            startLng: step.maneuver?.location?.[0],
+          });
+        });
+      }
+    });
+  }
+
+  // Enter nav mode
+  document.body.classList.add('navigating');
+  document.getElementById('navHud').classList.add('show');
+
+  // Hide non-selected route lines
+  routeLines.forEach((l, i) => {
+    if (i !== routeIndex) map.removeLayer(l);
+    else l.setStyle({ weight: 6, opacity: 1, dashArray: null, color: '#22c55e' });
+  });
+
+  // Create nav marker
+  if (navMarker) map.removeLayer(navMarker);
+  const startPos = myPos || { lat: navRouteCoords[0][0], lng: navRouteCoords[0][1] };
+  navMarker = L.marker([startPos.lat, startPos.lng], {
+    icon: L.divIcon({
+      html: `<div class="nav-marker"><div class="nav-marker-pulse"></div><div class="nav-marker-dot"></div><div class="nav-marker-heading" id="navHeading"></div></div>`,
+      className: '', iconSize: [20, 20], iconAnchor: [10, 10],
+    }),
+    zIndexOffset: 1000,
+  }).addTo(map);
+
+  map.setView([startPos.lat, startPos.lng], 17);
+  updateNavHud(navTotalDist, navTotalDur, 0);
+  if (navSteps.length) updateNavInstruction(navSteps[0]);
+
+  // Start watching position
+  if (navigator.geolocation) {
+    navWatchId = navigator.geolocation.watchPosition(onNavPosition, null, {
+      enableHighAccuracy: true, maximumAge: 2000, timeout: 10000,
+    });
+  }
+}
+
+function onNavPosition(pos) {
+  if (!navActive) return;
+  const lat = pos.coords.latitude;
+  const lng = pos.coords.longitude;
+  const speed = pos.coords.speed; // m/s or null
+  const heading = pos.coords.heading;
+  myPos = { lat, lng };
+
+  // Move nav marker smoothly
+  navMarker.setLatLng([lat, lng]);
+
+  // Update heading arrow
+  if (heading !== null && !isNaN(heading)) {
+    lastHeading = heading;
+    const el = document.getElementById('navHeading');
+    if (el) el.style.transform = `rotate(${heading}deg)`;
+  }
+
+  // Also update the blue dot
+  if (myMarker) myMarker.setLatLng([lat, lng]);
+
+  // Auto-center map on user
+  map.panTo([lat, lng], { animate: true, duration: 0.5 });
+
+  // Find nearest point on route to calculate remaining distance
+  let minDist = Infinity, nearestIdx = 0;
+  for (let i = 0; i < navRouteCoords.length; i++) {
+    const d = haversine(lat, lng, navRouteCoords[i][0], navRouteCoords[i][1]);
+    if (d < minDist) { minDist = d; nearestIdx = i; }
+  }
+
+  // Calculate remaining distance from nearest point to end
+  let remaining = 0;
+  for (let i = nearestIdx; i < navRouteCoords.length - 1; i++) {
+    remaining += haversine(navRouteCoords[i][0], navRouteCoords[i][1], navRouteCoords[i+1][0], navRouteCoords[i+1][1]);
+  }
+
+  // Estimate remaining time
+  const avgSpeed = speed && speed > 0.5 ? speed : (navTotalDist / navTotalDur); // m/s
+  const remainingTime = remaining / avgSpeed; // seconds
+  const displaySpeed = speed !== null ? Math.round(speed * 3.6) : '--';
+
+  updateNavHud(remaining, remainingTime, displaySpeed);
+
+  // Advance to next step if close enough
+  if (navCurrentStep < navSteps.length - 1) {
+    const nextStep = navSteps[navCurrentStep + 1];
+    if (nextStep.startLat && nextStep.startLng) {
+      const dToNext = haversine(lat, lng, nextStep.startLat, nextStep.startLng);
+      if (dToNext < 30) { // within 30m of next maneuver
+        navCurrentStep++;
+        updateNavInstruction(navSteps[navCurrentStep]);
+      }
+    }
+  }
+
+  // Check if arrived (within 50m of destination)
+  const destLat = navRouteCoords[navRouteCoords.length - 1][0];
+  const destLng = navRouteCoords[navRouteCoords.length - 1][1];
+  if (haversine(lat, lng, destLat, destLng) < 50) {
+    updateNavInstruction({ instruction: '🎉 You have arrived!', name: '', distance: 0 });
+    document.getElementById('navDist').textContent = '0 m';
+    document.getElementById('navEta').textContent = '0 min';
+  }
+}
+
+function updateNavHud(distMeters, timeSec, speed) {
+  const dist = distMeters > 1000 ? (distMeters / 1000).toFixed(1) + ' km' : Math.round(distMeters) + ' m';
+  const mins = Math.max(1, Math.round(timeSec / 60));
+  const eta = mins >= 60 ? Math.floor(mins / 60) + 'h ' + (mins % 60) + 'm' : mins + ' min';
+  document.getElementById('navDist').textContent = dist;
+  document.getElementById('navEta').textContent = eta;
+  document.getElementById('navSpeed').textContent = typeof speed === 'number' ? speed : '--';
+}
+
+function updateNavInstruction(step) {
+  document.getElementById('navStep').textContent = step.instruction + (step.name ? ' on ' + step.name : '');
+  document.getElementById('navStepDist').textContent = step.distance > 0
+    ? (step.distance > 1000 ? (step.distance / 1000).toFixed(1) + ' km' : Math.round(step.distance) + ' m')
+    : '';
+  document.getElementById('navArrow').textContent = getManeuverArrow(step.maneuver);
+}
+
+function stopNavigation() {
+  navActive = false;
+  if (navWatchId !== null) {
+    navigator.geolocation.clearWatch(navWatchId);
+    navWatchId = null;
+  }
+  if (navMarker) { map.removeLayer(navMarker); navMarker = null; }
+  document.body.classList.remove('navigating');
+  document.getElementById('navHud').classList.remove('show');
+  clearRoute();
+  document.getElementById('routePanel').classList.remove('show');
+  if (myPos) map.setView([myPos.lat, myPos.lng], 15);
+}
+
+function navRecenter() {
+  if (myPos) map.setView([myPos.lat, myPos.lng], 17, { animate: true });
+}
+
+// Haversine distance in meters
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const toRad = d => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function formatManeuver(type, modifier) {
+  const m = modifier || '';
+  switch (type) {
+    case 'turn': return m.includes('left') ? 'Turn left' : m.includes('right') ? 'Turn right' : 'Turn ' + m;
+    case 'new name': return 'Continue onto';
+    case 'depart': return 'Head ' + m;
+    case 'arrive': return 'Arrive at destination';
+    case 'merge': return 'Merge ' + m;
+    case 'fork': return m.includes('left') ? 'Keep left' : 'Keep right';
+    case 'roundabout': return 'Enter roundabout';
+    case 'rotary': return 'Enter rotary';
+    case 'exit roundabout': return 'Exit roundabout';
+    case 'end of road': return m.includes('left') ? 'Turn left' : 'Turn right';
+    default: return 'Continue';
+  }
+}
+
+function getManeuverArrow(maneuver) {
+  if (!maneuver) return '⬆️';
+  const m = maneuver.modifier || '';
+  const t = maneuver.type || '';
+  if (t === 'arrive') return '🏁';
+  if (m.includes('straight') || t === 'depart') return '⬆️';
+  if (m === 'left' || m === 'sharp left') return '⬅️';
+  if (m === 'right' || m === 'sharp right') return '➡️';
+  if (m === 'slight left') return '↖️';
+  if (m === 'slight right') return '↗️';
+  if (m === 'uturn') return '↩️';
+  if (t === 'roundabout' || t === 'rotary') return '🔄';
+  return '⬆️';
 }
 </script>
 </body>
