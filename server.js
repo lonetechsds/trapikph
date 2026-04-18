@@ -33,6 +33,13 @@ setInterval(cleanupReports, 60000);
 
 // ── API Routes ──
 
+// TomTom config (serves key to client without hardcoding in HTML)
+app.get('/api/config', (req, res) => {
+  res.json({
+    tomtomKey: process.env.TOMTOM_API_KEY || '',
+  });
+});
+
 // Get all active reports
 app.get('/api/reports', (req, res) => {
   const active = [];

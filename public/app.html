@@ -180,6 +180,21 @@ body.navigating .topbar,body.navigating .fab,body.navigating .fab-route,body.nav
 .anav-drive .anav-emoji{animation:anavDrive 0.8s ease-in-out infinite}
 @keyframes anavDrive{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}
 
+/* Traffic toggle */
+.fab-traffic{position:fixed;bottom:24px;right:148px;z-index:1000;width:56px;height:56px;border-radius:50%;background:rgba(10,15,26,0.9);border:1px solid rgba(255,255,255,0.1);color:#e2e8f0;font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:0.2s;backdrop-filter:blur(10px)}
+.fab-traffic:active{transform:scale(0.9)}
+.fab-traffic.active{border-color:#22c55e;background:rgba(34,197,94,0.15);box-shadow:0 0 12px rgba(34,197,94,0.2)}
+.traffic-loading{animation:trafficSpin 1s linear infinite}
+@keyframes trafficSpin{to{transform:rotate(360deg)}}
+body.navigating .fab-traffic{display:none!important}
+
+/* Traffic legend */
+.traffic-legend{position:fixed;bottom:88px;right:136px;z-index:1000;background:rgba(10,15,26,0.92);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 12px;display:none;font-size:0.65rem;color:rgba(255,255,255,0.5)}
+.traffic-legend.show{display:block}
+.traffic-legend h4{font-size:0.62rem;font-weight:800;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px}
+.tl-row{display:flex;align-items:center;gap:6px;margin-bottom:3px}
+.tl-swatch{width:20px;height:4px;border-radius:2px}
+
 @media(max-width:500px){
   .route-panel{left:8px;right:8px;width:auto}
 }
@@ -222,8 +237,18 @@ body.navigating .topbar,body.navigating .fab,body.navigating .fab-route,body.nav
 
 <!-- FABs -->
 <div class="report-count" id="reportCount"><span class="cnt">0</span> active reports</div>
+<button class="fab-traffic" id="trafficToggle" onclick="toggleTraffic()" title="Traffic layer">🚦</button>
 <button class="fab-route" onclick="toggleRoutePanel()" title="Directions">🛣</button>
 <button class="fab" onclick="openReportSheet()" title="Report">⚠️</button>
+
+<!-- Traffic legend -->
+<div class="traffic-legend" id="trafficLegend">
+  <h4>Traffic Flow</h4>
+  <div class="tl-row"><div class="tl-swatch" style="background:#0fec30"></div> Free flow</div>
+  <div class="tl-row"><div class="tl-swatch" style="background:#ffd500"></div> Moderate</div>
+  <div class="tl-row"><div class="tl-swatch" style="background:#ff7700"></div> Slow</div>
+  <div class="tl-row"><div class="tl-swatch" style="background:#e60000"></div> Congested</div>
+</div>
 
 <!-- Report sheet -->
 <div class="report-sheet" id="reportSheet">
@@ -299,6 +324,49 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
   attribution: '© <a href="https://carto.com/">CARTO</a> © <a href="https://osm.org/">OSM</a>',
   maxZoom: 19,
 }).addTo(map);
+
+// ── TomTom Traffic Flow Layer ──
+let trafficLayer = null;
+let trafficOn = false;
+
+async function initTrafficLayer() {
+  try {
+    const resp = await fetch('/api/config');
+    const cfg = await resp.json();
+    if (!cfg.tomtomKey) return null;
+    return L.tileLayer(
+      'https://api.tomtom.com/traffic/map/4/tile/flow/relative0/{z}/{x}/{y}.png?tileSize=256&key=' + cfg.tomtomKey,
+      { maxZoom: 19, opacity: 0.7, zIndex: 400, attribution: '© <a href="https://tomtom.com">TomTom</a>' }
+    );
+  } catch { return null; }
+}
+
+async function toggleTraffic() {
+  const btn = document.getElementById('trafficToggle');
+  const legend = document.getElementById('trafficLegend');
+
+  if (!trafficLayer) {
+    btn.innerHTML = '<span class="traffic-loading">🚦</span>';
+    trafficLayer = await initTrafficLayer();
+    if (!trafficLayer) {
+      btn.textContent = '🚦';
+      alert('Traffic layer unavailable. Make sure TOMTOM_API_KEY is set.');
+      return;
+    }
+  }
+
+  trafficOn = !trafficOn;
+  if (trafficOn) {
+    trafficLayer.addTo(map);
+    btn.classList.add('active');
+    legend.classList.add('show');
+  } else {
+    map.removeLayer(trafficLayer);
+    btn.classList.remove('active');
+    legend.classList.remove('show');
+  }
+  btn.textContent = '🚦';
+}
 
 // ── State ──
 const socket = io({ transports: ['websocket', 'polling'] });
