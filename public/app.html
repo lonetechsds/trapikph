@@ -310,6 +310,7 @@ let startCoord = null, endCoord = null;
 let selectedType = null, selectedSev = 'low';
 let activeRpInput = null;
 let searchTimeout = null;
+let searchMarker = null;
 
 // Navigation state
 let navActive = false;
@@ -359,9 +360,15 @@ searchInput.addEventListener('input', () => {
   const q = searchInput.value.trim();
   if (q.length < 2) { searchResults.classList.remove('show'); return; }
   searchTimeout = setTimeout(() => geocode(q, searchResults, (r) => {
-    map.setView([parseFloat(r.lat), parseFloat(r.lon)], 15);
+    const lat = parseFloat(r.lat), lon = parseFloat(r.lon);
+    map.setView([lat, lon], 15);
     searchInput.value = r.name.split(',').slice(0, 2).join(',');
     searchResults.classList.remove('show');
+    if (searchMarker) map.removeLayer(searchMarker);
+    searchMarker = L.marker([lat, lon], { icon: makeIcon('📍', 32) })
+      .addTo(map)
+      .bindPopup(r.name)
+      .openPopup();
   }), 400);
 });
 
