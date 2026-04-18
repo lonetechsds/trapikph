@@ -490,7 +490,8 @@ function locateMe() {
   }
   const locBtn = document.querySelector('.locate-btn');
   locBtn.innerHTML = '<img src="/icons/hourglass.svg" class="icon icon-md" alt="">';
-  navigator.geolocation.getCurrentPosition(pos => {
+
+  function onSuccess(pos) {
     myPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
     map.flyTo({ center: [myPos.lng, myPos.lat], zoom: 15 });
     if (myMarker) myMarker.remove();
@@ -499,12 +500,26 @@ function locateMe() {
       .setPopup(new maplibregl.Popup({ offset: 14 }).setText('You are here'))
       .addTo(map);
     locBtn.innerHTML = '<img src="/icons/location-pin.svg" class="icon icon-md" alt="">';
-  }, (err) => {
+  }
+
+  function onError(err) {
     locBtn.innerHTML = '<img src="/icons/location-pin.svg" class="icon icon-md" alt="">';
     if (err.code === 1) alert('Location access denied. Please enable GPS/location permission.');
     else if (err.code === 2) alert('Location unavailable. Make sure GPS is enabled.');
     else alert('Location request timed out. Try again.');
-  }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 });
+  }
+
+  // Try high accuracy first (GPS), fall back to low accuracy (cell/WiFi) on timeout
+  navigator.geolocation.getCurrentPosition(onSuccess, (err) => {
+    if (err.code === 3) {
+      // Timeout — retry with low accuracy for a faster fix
+      navigator.geolocation.getCurrentPosition(onSuccess, onError, {
+        enableHighAccuracy: false, timeout: 15000, maximumAge: 60000,
+      });
+    } else {
+      onError(err);
+    }
+  }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 });
 }
 locateMe();
 
