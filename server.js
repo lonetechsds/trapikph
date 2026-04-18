@@ -3,6 +3,16 @@ const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
 const crypto = require('crypto');
+const { readFileSync } = require('fs');
+
+// Load .env if present
+try {
+  const env = readFileSync(path.join(__dirname, '.env'), 'utf8');
+  env.split('\n').forEach(line => {
+    const [k, ...v] = line.split('=');
+    if (k && v.length) process.env[k.trim()] = v.join('=').trim();
+  });
+} catch {}
 
 const app = express();
 const server = http.createServer(app);
