@@ -309,6 +309,7 @@ body.navigating .fab-traffic{display:none!important}
 <div class="map-footer">Powered by Lonetech Software</div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-rotate@0.2.8/leaflet-rotate-src.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4/dist/socket.io.min.js"></script>
 <script>
 // ── Map setup ──
@@ -316,6 +317,10 @@ const map = L.map('map', {
   center: [15.145, 120.595], // Angeles City, Pampanga
   zoom: 13,
   zoomControl: false,
+  rotate: true,
+  touchRotate: true,
+  shiftKeyRotate: true,
+  bearing: 0,
 });
 L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
