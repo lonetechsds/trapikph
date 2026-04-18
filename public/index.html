@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TrapikPH — Real-Time Traffic & Route Planner</title>
 <meta name="description" content="Community-driven traffic reports and route planning for Philippine roads. Free, real-time, crowd-sourced.">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#22c55e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TrapikPH">
+<link rel="apple-touch-icon" href="/icons/icon-192.svg">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -156,6 +162,11 @@ for (let i = 0; i < 8; i++) {
   if (Math.random() < 0.3) line.style.background = 'linear-gradient(to bottom,transparent,rgba(239,68,68,0.25),transparent)';
   else if (Math.random() < 0.3) line.style.background = 'linear-gradient(to bottom,transparent,rgba(250,204,21,0.25),transparent)';
   bg.appendChild(line);
+}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
 </script>
 </body>

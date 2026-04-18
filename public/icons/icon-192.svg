@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+    <rect width="192" height="192" fill="#0a0f1a" rx="38"/>
+    <circle cx="96" cy="96" r="77" fill="#22c55e" opacity="0.15"/>
+    <text x="96" y="114.48" font-size="77" text-anchor="middle" font-family="sans-serif" font-weight="900">🚦</text>
+    <text x="96" y="154.52" font-size="21.560000000000002" fill="#e2e8f0" text-anchor="middle" font-family="sans-serif" font-weight="900">TrapikPH</text>
+  </svg>
