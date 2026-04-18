@@ -360,7 +360,7 @@ searchInput.addEventListener('input', () => {
   if (q.length < 2) { searchResults.classList.remove('show'); return; }
   searchTimeout = setTimeout(() => geocode(q, searchResults, (r) => {
     map.setView([parseFloat(r.lat), parseFloat(r.lon)], 15);
-    searchInput.value = r.display_name.split(',').slice(0, 2).join(',');
+    searchInput.value = r.name.split(',').slice(0, 2).join(',');
     searchResults.classList.remove('show');
   }), 400);
 });
