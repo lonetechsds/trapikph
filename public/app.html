@@ -199,8 +199,21 @@ body.navigating .fab-traffic{display:none!important}
 .tl-swatch{width:20px;height:4px;border-radius:2px}
 
 /* Custom marker elements */
-.marker-emoji{font-size:28px;text-align:center;line-height:1;cursor:pointer}
-.marker-report{width:32px;height:32px;border-radius:50%;background:rgba(10,15,26,0.9);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer}
+.marker-icon{display:inline-block;vertical-align:middle;cursor:pointer}
+.marker-report{width:32px;height:32px;border-radius:50%;background:rgba(10,15,26,0.9);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.marker-report img{width:18px;height:18px}
+
+/* SVG icon utility */
+.icon{display:inline-block;vertical-align:middle;filter:brightness(0) invert(1)}
+.icon-xs{width:12px;height:12px}
+.icon-sm{width:16px;height:16px}
+.icon-md{width:20px;height:20px}
+.icon-lg{width:28px;height:28px}
+.icon-xl{width:36px;height:36px}
+.icon-green{filter:brightness(0) saturate(100%) invert(62%) sepia(92%) saturate(385%) hue-rotate(95deg) brightness(96%) contrast(92%)}
+.icon-yellow{filter:brightness(0) saturate(100%) invert(72%) sepia(56%) saturate(1000%) hue-rotate(4deg) brightness(103%) contrast(97%)}
+.icon-red{filter:brightness(0) saturate(100%) invert(31%) sepia(98%) saturate(4000%) hue-rotate(348deg) brightness(95%) contrast(95%)}
+.icon-blue{filter:brightness(0) saturate(100%) invert(40%) sepia(93%) saturate(1500%) hue-rotate(200deg) brightness(95%) contrast(95%)}
 .my-location-marker{position:relative;width:24px;height:24px}
 .my-location-pulse{width:24px;height:24px;border-radius:50%;background:rgba(59,130,246,0.2);position:absolute;animation:navPulse 2s infinite}
 .my-location-dot{width:14px;height:14px;border-radius:50%;background:#3b82f6;border:3px solid #fff;box-shadow:0 0 8px rgba(59,130,246,0.5);position:absolute;top:5px;left:5px}
@@ -220,18 +233,18 @@ body.navigating .fab-traffic{display:none!important}
 
 <!-- Top bar -->
 <div class="topbar">
-  <div class="brand">🚦 <span>Trapik</span><span class="ph">PH</span></div>
+  <div class="brand"><img src="/icons/traffic-light.svg" class="icon icon-md icon-green" alt=""> <span>Trapik</span><span class="ph">PH</span></div>
   <div class="search-box">
-    <span class="s-icon">🔍</span>
+    <span class="s-icon"><img src="/icons/search.svg" class="icon icon-sm" alt=""></span>
     <input type="text" id="searchInput" placeholder="Search location..." autocomplete="off">
     <div class="search-results" id="searchResults"></div>
   </div>
-  <button class="locate-btn" onclick="locateMe()" title="My location">📍</button>
+  <button class="locate-btn" id="locateBtn" onclick="locateMe()" title="My location"><img src="/icons/location-pin.svg" class="icon icon-md" alt=""></button>
 </div>
 
 <!-- Route panel -->
 <div class="route-panel" id="routePanel">
-  <button class="rp-close" onclick="closeRoute()">✕</button>
+  <button class="rp-close" onclick="closeRoute()"><img src="/icons/close.svg" class="icon icon-sm" alt=""></button>
   <h3>Directions</h3>
   <div class="rp-row">
     <div class="rp-dot start"></div>
@@ -251,9 +264,9 @@ body.navigating .fab-traffic{display:none!important}
 
 <!-- FABs -->
 <div class="report-count" id="reportCount"><span class="cnt">0</span> active reports</div>
-<button class="fab-traffic" id="trafficToggle" onclick="toggleTraffic()" title="Traffic layer">🚦</button>
-<button class="fab-route" onclick="toggleRoutePanel()" title="Directions">🛣</button>
-<button class="fab" onclick="openReportSheet()" title="Report">⚠️</button>
+<button class="fab-traffic" id="trafficToggle" onclick="toggleTraffic()" title="Traffic layer"><img src="/icons/traffic-light.svg" class="icon icon-lg" alt=""></button>
+<button class="fab-route" onclick="toggleRoutePanel()" title="Directions"><img src="/icons/road.svg" class="icon icon-lg" alt=""></button>
+<button class="fab" onclick="openReportSheet()" title="Report"><img src="/icons/warning.svg" class="icon icon-lg" style="filter:brightness(0)" alt=""></button>
 
 <!-- Traffic legend -->
 <div class="traffic-legend" id="trafficLegend">
@@ -268,20 +281,20 @@ body.navigating .fab-traffic{display:none!important}
 <div class="report-sheet" id="reportSheet">
   <div class="sheet-handle"></div>
   <div class="sheet-title">Report an Incident</div>
-  <div class="loc-label" id="reportLoc">📍 Using your current location</div>
+  <div class="loc-label" id="reportLoc"><img src="/icons/location-pin.svg" class="icon icon-xs" alt=""> Using your current location</div>
   <div class="report-types" id="reportTypes">
-    <div class="rt-btn" data-type="traffic" onclick="selectType(this)"><span class="rt-icon">🚗</span>Traffic</div>
-    <div class="rt-btn" data-type="accident" onclick="selectType(this)"><span class="rt-icon">💥</span>Accident</div>
-    <div class="rt-btn" data-type="flood" onclick="selectType(this)"><span class="rt-icon">🌊</span>Flood</div>
-    <div class="rt-btn" data-type="closure" onclick="selectType(this)"><span class="rt-icon">🚧</span>Closure</div>
-    <div class="rt-btn" data-type="police" onclick="selectType(this)"><span class="rt-icon">👮</span>Police</div>
-    <div class="rt-btn" data-type="hazard" onclick="selectType(this)"><span class="rt-icon">⚠️</span>Hazard</div>
-    <div class="rt-btn" data-type="construction" onclick="selectType(this)"><span class="rt-icon">🔨</span>Construction</div>
+    <div class="rt-btn" data-type="traffic" onclick="selectType(this)"><span class="rt-icon"><img src="/icons/car-traffic.svg" class="icon icon-md icon-yellow" alt=""></span>Traffic</div>
+    <div class="rt-btn" data-type="accident" onclick="selectType(this)"><span class="rt-icon"><img src="/icons/crash.svg" class="icon icon-md icon-red" alt=""></span>Accident</div>
+    <div class="rt-btn" data-type="flood" onclick="selectType(this)"><span class="rt-icon"><img src="/icons/flood.svg" class="icon icon-md icon-blue" alt=""></span>Flood</div>
+    <div class="rt-btn" data-type="closure" onclick="selectType(this)"><span class="rt-icon"><img src="/icons/road-barrier.svg" class="icon icon-md icon-red" alt=""></span>Closure</div>
+    <div class="rt-btn" data-type="police" onclick="selectType(this)"><span class="rt-icon"><img src="/icons/police.svg" class="icon icon-md" alt=""></span>Police</div>
+    <div class="rt-btn" data-type="hazard" onclick="selectType(this)"><span class="rt-icon"><img src="/icons/warning.svg" class="icon icon-md icon-yellow" alt=""></span>Hazard</div>
+    <div class="rt-btn" data-type="construction" onclick="selectType(this)"><span class="rt-icon"><img src="/icons/hammer.svg" class="icon icon-md" alt=""></span>Construction</div>
   </div>
   <div class="sev-row">
-    <div class="sev-btn selected" data-sev="low" onclick="selectSev(this)">🟢 Light</div>
-    <div class="sev-btn" data-sev="moderate" onclick="selectSev(this)">🟡 Moderate</div>
-    <div class="sev-btn" data-sev="heavy" onclick="selectSev(this)">🔴 Heavy</div>
+    <div class="sev-btn selected" data-sev="low" onclick="selectSev(this)"><img src="/icons/circle-green.svg" class="icon icon-xs icon-green" alt=""> Light</div>
+    <div class="sev-btn" data-sev="moderate" onclick="selectSev(this)"><img src="/icons/circle-yellow.svg" class="icon icon-xs icon-yellow" alt=""> Moderate</div>
+    <div class="sev-btn" data-sev="heavy" onclick="selectSev(this)"><img src="/icons/circle-red.svg" class="icon icon-xs icon-red" alt=""> Heavy</div>
   </div>
   <textarea class="desc-input" id="reportDesc" placeholder="Optional: describe the situation..." rows="2" maxlength="200"></textarea>
   <div class="sheet-btns">
@@ -303,7 +316,7 @@ body.navigating .fab-traffic{display:none!important}
 <!-- Navigation HUD -->
 <div class="nav-hud" id="navHud">
   <div class="nav-instruction">
-    <div class="nav-arrow" id="navArrow">⬆️</div>
+    <div class="nav-arrow" id="navArrow"><img src="/icons/arrow-up.svg" class="icon icon-xl" alt=""></div>
     <div>
       <div class="nav-step" id="navStep">Head north</div>
       <div class="nav-step-dist" id="navStepDist"></div>
@@ -315,8 +328,8 @@ body.navigating .fab-traffic{display:none!important}
     <div class="nav-stat"><div class="ns-val" id="navSpeed">--</div><div class="ns-label">km/h</div></div>
   </div>
   <div class="nav-stop">
-    <button class="nav-recenter" onclick="navRecenter()">📍 Re-center</button>
-    <button class="nav-stop-btn" onclick="stopNavigation()">✕ End Navigation</button>
+    <button class="nav-recenter" onclick="navRecenter()"><img src="/icons/location-pin.svg" class="icon icon-sm" alt=""> Re-center</button>
+    <button class="nav-stop-btn" onclick="stopNavigation()"><img src="/icons/close.svg" class="icon icon-sm icon-red" alt=""> End Navigation</button>
   </div>
 </div>
 
@@ -344,7 +357,7 @@ map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-rig
 map.on('load', () => {
   const hint = document.createElement('div');
   hint.className = 'pitch-hint show';
-  hint.textContent = '💡 Right-click + drag to tilt 3D • Two fingers to rotate';
+  hint.innerHTML = '<img src="/icons/lightbulb.svg" class="icon icon-sm" alt=""> Right-click + drag to tilt 3D • Two fingers to rotate';
   document.body.appendChild(hint);
   setTimeout(() => { hint.classList.remove('show'); setTimeout(() => hint.remove(), 600); }, 4000);
 });
@@ -368,10 +381,10 @@ async function toggleTraffic() {
   const legend = document.getElementById('trafficLegend');
 
   if (!map.getSource('traffic')) {
-    btn.innerHTML = '<span class="traffic-loading">🚦</span>';
+    btn.innerHTML = '<span class="traffic-loading"><img src="/icons/traffic-light.svg" class="icon icon-lg" alt=""></span>';
     const key = await getTomTomKey();
     if (!key) {
-      btn.textContent = '🚦';
+      btn.innerHTML = '<img src="/icons/traffic-light.svg" class="icon icon-lg" alt="">';
       alert('Traffic layer unavailable. Make sure TOMTOM_API_KEY is set.');
       return;
     }
@@ -389,7 +402,7 @@ async function toggleTraffic() {
     trafficOn = true;
     btn.classList.add('active');
     legend.classList.add('show');
-    btn.textContent = '🚦';
+    btn.innerHTML = '<img src="/icons/traffic-light.svg" class="icon icon-lg" alt="">';
     return;
   }
 
@@ -397,7 +410,7 @@ async function toggleTraffic() {
   map.setLayoutProperty('traffic-layer', 'visibility', trafficOn ? 'visible' : 'none');
   btn.classList.toggle('active', trafficOn);
   legend.classList.toggle('show', trafficOn);
-  btn.textContent = '🚦';
+  btn.innerHTML = '<img src="/icons/traffic-light.svg" class="icon icon-lg" alt="">';
 }
 
 // ── State ──
@@ -428,23 +441,22 @@ let lastHeading = 0;
 
 // Report type config
 const TYPE_CONFIG = {
-  traffic:      { icon: '🚗', color: '#f59e0b', label: 'Traffic' },
-  accident:     { icon: '💥', color: '#ef4444', label: 'Accident' },
-  flood:        { icon: '🌊', color: '#3b82f6', label: 'Flood' },
-  closure:      { icon: '🚧', color: '#ef4444', label: 'Road Closure' },
-  police:       { icon: '👮', color: '#8b5cf6', label: 'Police' },
-  hazard:       { icon: '⚠️', color: '#f59e0b', label: 'Hazard' },
-  construction: { icon: '🔨', color: '#f97316', label: 'Construction' },
+  traffic:      { icon: '/icons/car-traffic.svg', color: '#f59e0b', label: 'Traffic' },
+  accident:     { icon: '/icons/crash.svg',       color: '#ef4444', label: 'Accident' },
+  flood:        { icon: '/icons/flood.svg',       color: '#3b82f6', label: 'Flood' },
+  closure:      { icon: '/icons/road-barrier.svg', color: '#ef4444', label: 'Road Closure' },
+  police:       { icon: '/icons/police.svg',      color: '#8b5cf6', label: 'Police' },
+  hazard:       { icon: '/icons/warning.svg',     color: '#f59e0b', label: 'Hazard' },
+  construction: { icon: '/icons/hammer.svg',      color: '#f97316', label: 'Construction' },
 };
 
 const SEV_COLORS = { low: '#22c55e', moderate: '#f59e0b', heavy: '#ef4444' };
 
 // ── Helper: create DOM elements for markers ──
-function makeEmojiEl(emoji, size = 28) {
+function makeIconEl(iconPath, size = 28) {
   const el = document.createElement('div');
-  el.className = 'marker-emoji';
-  el.style.fontSize = size + 'px';
-  el.textContent = emoji;
+  el.className = 'marker-icon';
+  el.innerHTML = `<img src="${iconPath}" class="icon" style="width:${size}px;height:${size}px" alt="">`;
   return el;
 }
 
@@ -454,7 +466,7 @@ function makeReportEl(type, severity) {
   const el = document.createElement('div');
   el.className = 'marker-report';
   el.style.border = `2px solid ${borderColor}`;
-  el.textContent = cfg.icon;
+  el.innerHTML = `<img src="${cfg.icon}" class="icon icon-sm" alt="">`;
   return el;
 }
 
@@ -472,7 +484,7 @@ function locateMe() {
     return;
   }
   const locBtn = document.querySelector('.locate-btn');
-  locBtn.textContent = '⏳';
+  locBtn.innerHTML = '<img src="/icons/hourglass.svg" class="icon icon-md" alt="">';
   navigator.geolocation.getCurrentPosition(pos => {
     myPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
     map.flyTo({ center: [myPos.lng, myPos.lat], zoom: 15 });
@@ -481,9 +493,9 @@ function locateMe() {
       .setLngLat([myPos.lng, myPos.lat])
       .setPopup(new maplibregl.Popup({ offset: 14 }).setText('You are here'))
       .addTo(map);
-    locBtn.textContent = '📍';
+    locBtn.innerHTML = '<img src="/icons/location-pin.svg" class="icon icon-md" alt="">';
   }, (err) => {
-    locBtn.textContent = '📍';
+    locBtn.innerHTML = '<img src="/icons/location-pin.svg" class="icon icon-md" alt="">';
     if (err.code === 1) alert('Location access denied. Please enable GPS/location permission.');
     else if (err.code === 2) alert('Location unavailable. Make sure GPS is enabled.');
     else alert('Location request timed out. Try again.');
@@ -505,7 +517,7 @@ searchInput.addEventListener('input', () => {
     searchInput.value = r.name.split(',').slice(0, 2).join(',');
     searchResults.classList.remove('show');
     if (searchMarker) searchMarker.remove();
-    searchMarker = new maplibregl.Marker({ element: makeEmojiEl('📍', 32) })
+    searchMarker = new maplibregl.Marker({ element: makeIconEl('/icons/location-pin.svg', 32) })
       .setLngLat([lon, lat])
       .setPopup(new maplibregl.Popup({ offset: 18 }).setText(r.name))
       .addTo(map);
@@ -648,11 +660,11 @@ async function calcRoute() {
     map.fitBounds(coordsBounds(data.routes[0].geometry.coordinates), { padding: 60 });
 
     // Start/end markers
-    const sm = new maplibregl.Marker({ element: makeEmojiEl('🟢') })
+    const sm = new maplibregl.Marker({ element: makeIconEl('/icons/circle-green.svg') })
       .setLngLat([startCoord.lng, startCoord.lat])
       .setPopup(new maplibregl.Popup({ offset: 14 }).setText('Start'))
       .addTo(map);
-    const em = new maplibregl.Marker({ element: makeEmojiEl('🔴') })
+    const em = new maplibregl.Marker({ element: makeIconEl('/icons/circle-red.svg') })
       .setLngLat([endCoord.lng, endCoord.lat])
       .setPopup(new maplibregl.Popup({ offset: 14 }).setText('Destination'))
       .addTo(map);
@@ -694,9 +706,9 @@ function clearRouteLines() {
 function openReportSheet() {
   document.getElementById('reportSheet').classList.add('show');
   if (myPos) {
-    document.getElementById('reportLoc').textContent = `📍 Lat: ${myPos.lat.toFixed(5)}, Lng: ${myPos.lng.toFixed(5)}`;
+    document.getElementById('reportLoc').innerHTML = `<img src="/icons/location-pin.svg" class="icon icon-xs" alt=""> Lat: ${myPos.lat.toFixed(5)}, Lng: ${myPos.lng.toFixed(5)}`;
   } else {
-    document.getElementById('reportLoc').textContent = '📍 Getting your location... (allow GPS)';
+    document.getElementById('reportLoc').innerHTML = '<img src="/icons/location-pin.svg" class="icon icon-xs" alt=""> Getting your location... (allow GPS)';
     locateMe();
   }
 }
@@ -782,12 +794,12 @@ function addReportMarker(r) {
     const ago = timeAgo(r.createdAt);
     const popup = new maplibregl.Popup({ offset: 18, maxWidth: '260px' })
       .setLngLat([r.lng, r.lat])
-      .setHTML(`<div class="popup-type" style="color:${cfg.color}">${cfg.icon} ${cfg.label}</div>
+      .setHTML(`<div class="popup-type" style="color:${cfg.color}"><img src="${cfg.icon}" class="icon icon-sm" style="filter:brightness(0) invert(1)" alt=""> ${cfg.label}</div>
         ${r.description ? `<div class="popup-desc">${escHtml(r.description)}</div>` : ''}
         <div class="popup-meta">
           <span>${ago}</span>
           <span style="color:${SEV_COLORS[r.severity]}">${r.severity}</span>
-          <button class="popup-upvote" onclick="upvote('${r.id}')">👍 ${r.upvotes}</button>
+          <button class="popup-upvote" onclick="upvote('${r.id}')"><img src="/icons/thumbs-up.svg" class="icon icon-xs" style="filter:brightness(0) invert(1)" alt=""> ${r.upvotes}</button>
           <button class="popup-gone" onclick="resolve('${r.id}')">Gone</button>
         </div>`)
       .addTo(map);
@@ -823,18 +835,18 @@ let _navRouteData = [];
 let selectedNavMarker = 'car';
 
 const NAV_MARKERS = [
-  { id: 'car',        emoji: '🚗', label: 'Car',        anim: 'anav-drive' },
-  { id: 'suv',        emoji: '🚙', label: 'SUV',        anim: 'anav-drive' },
-  { id: 'motorcycle', emoji: '🏍️', label: 'Moto',       anim: 'anav-bounce' },
-  { id: 'bus',        emoji: '🚌', label: 'Bus',        anim: 'anav-drive' },
-  { id: 'bicycle',    emoji: '🚲', label: 'Bike',       anim: 'anav-wobble' },
-  { id: 'bear',       emoji: '🐻', label: 'Bear',       anim: 'anav-wobble' },
-  { id: 'cat',        emoji: '🐱', label: 'Cat',        anim: 'anav-wobble' },
-  { id: 'dog',        emoji: '🐶', label: 'Dog',        anim: 'anav-bounce' },
-  { id: 'rabbit',     emoji: '🐰', label: 'Rabbit',     anim: 'anav-bounce' },
-  { id: 'rocket',     emoji: '🚀', label: 'Rocket',     anim: 'anav-pulse' },
-  { id: 'ufo',        emoji: '🛸', label: 'UFO',        anim: 'anav-pulse' },
-  { id: 'ghost',      emoji: '👻', label: 'Ghost',      anim: 'anav-pulse' },
+  { id: 'car',        icon: '/icons/car.svg',        label: 'Car',        anim: 'anav-drive' },
+  { id: 'suv',        icon: '/icons/suv.svg',        label: 'SUV',        anim: 'anav-drive' },
+  { id: 'motorcycle', icon: '/icons/motorcycle.svg',  label: 'Moto',       anim: 'anav-bounce' },
+  { id: 'bus',        icon: '/icons/bus.svg',         label: 'Bus',        anim: 'anav-drive' },
+  { id: 'bicycle',    icon: '/icons/bicycle.svg',     label: 'Bike',       anim: 'anav-wobble' },
+  { id: 'bear',       icon: '/icons/bear.svg',        label: 'Bear',       anim: 'anav-wobble' },
+  { id: 'cat',        icon: '/icons/cat.svg',         label: 'Cat',        anim: 'anav-wobble' },
+  { id: 'dog',        icon: '/icons/dog.svg',         label: 'Dog',        anim: 'anav-bounce' },
+  { id: 'rabbit',     icon: '/icons/rabbit.svg',      label: 'Rabbit',     anim: 'anav-bounce' },
+  { id: 'rocket',     icon: '/icons/rocket.svg',      label: 'Rocket',     anim: 'anav-pulse' },
+  { id: 'ufo',        icon: '/icons/ufo.svg',         label: 'UFO',        anim: 'anav-pulse' },
+  { id: 'ghost',      icon: '/icons/ghost.svg',       label: 'Ghost',      anim: 'anav-pulse' },
 ];
 
 // Build marker picker grid
@@ -844,7 +856,7 @@ const NAV_MARKERS = [
     const el = document.createElement('div');
     el.className = 'mp-item' + (i === 0 ? ' selected' : '');
     el.dataset.id = m.id;
-    el.innerHTML = `<span class="mp-icon">${m.emoji}</span><span class="mp-label">${m.label}</span>`;
+    el.innerHTML = `<span class="mp-icon"><img src="${m.icon}" class="icon icon-lg" alt=""></span><span class="mp-label">${m.label}</span>`;
     el.onclick = () => {
       grid.querySelectorAll('.mp-item').forEach(x => x.classList.remove('selected'));
       el.classList.add('selected');
@@ -879,7 +891,7 @@ document.getElementById('markerPicker').addEventListener('click', (e) => {
 function makeNavEl(markerId) {
   const m = NAV_MARKERS.find(x => x.id === markerId) || NAV_MARKERS[0];
   const el = document.createElement('div');
-  el.innerHTML = `<div class="anav-marker ${m.anim}"><div class="anav-ring"></div><div class="anav-shadow"></div><span class="anav-emoji">${m.emoji}</span></div>`;
+  el.innerHTML = `<div class="anav-marker ${m.anim}"><div class="anav-ring"></div><div class="anav-shadow"></div><span class="anav-emoji"><img src="${m.icon}" class="icon icon-lg" alt=""></span></div>`;
   return el.firstElementChild;
 }
 
@@ -1028,7 +1040,8 @@ function updateNavInstruction(step) {
   document.getElementById('navStepDist').textContent = step.distance > 0
     ? (step.distance > 1000 ? (step.distance / 1000).toFixed(1) + ' km' : Math.round(step.distance) + ' m')
     : '';
-  document.getElementById('navArrow').textContent = getManeuverArrow(step.maneuver);
+  const arrow = getManeuverArrow(step.maneuver);
+  document.getElementById('navArrow').innerHTML = `<img src="${arrow}" class="icon icon-xl" alt="">`;
 }
 
 function stopNavigation() {
@@ -1077,18 +1090,18 @@ function formatManeuver(type, modifier) {
 }
 
 function getManeuverArrow(maneuver) {
-  if (!maneuver) return '⬆️';
+  if (!maneuver) return '/icons/arrow-up.svg';
   const m = maneuver.modifier || '';
   const t = maneuver.type || '';
-  if (t === 'arrive') return '🏁';
-  if (m.includes('straight') || t === 'depart') return '⬆️';
-  if (m === 'left' || m === 'sharp left') return '⬅️';
-  if (m === 'right' || m === 'sharp right') return '➡️';
-  if (m === 'slight left') return '↖️';
-  if (m === 'slight right') return '↗️';
-  if (m === 'uturn') return '↩️';
-  if (t === 'roundabout' || t === 'rotary') return '🔄';
-  return '⬆️';
+  if (t === 'arrive') return '/icons/flag-finish.svg';
+  if (m.includes('straight') || t === 'depart') return '/icons/arrow-up.svg';
+  if (m === 'left' || m === 'sharp left') return '/icons/arrow-left.svg';
+  if (m === 'right' || m === 'sharp right') return '/icons/arrow-right.svg';
+  if (m === 'slight left') return '/icons/arrow-up-left.svg';
+  if (m === 'slight right') return '/icons/arrow-up-right.svg';
+  if (m === 'uturn') return '/icons/u-turn.svg';
+  if (t === 'roundabout' || t === 'rotary') return '/icons/roundabout.svg';
+  return '/icons/arrow-up.svg';
 }
 </script>
 <script>
