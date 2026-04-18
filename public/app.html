@@ -107,6 +107,11 @@ body{font-family:'Inter',sans-serif;background:#0a0f1a;overflow:hidden}
 .popup-upvote{padding:3px 10px;border-radius:6px;border:1px solid rgba(34,197,94,0.2);background:rgba(34,197,94,0.08);color:#22c55e;font-weight:700;font-size:0.68rem;cursor:pointer}
 .popup-upvote:hover{background:rgba(34,197,94,0.15)}
 .popup-gone{padding:3px 10px;border-radius:6px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.08);color:#ef4444;font-weight:700;font-size:0.68rem;cursor:pointer}
+.popup-nav{display:flex;gap:8px;margin-top:8px}
+.popup-nav-btn{flex:1;padding:6px 10px;border-radius:8px;border:1px solid rgba(34,197,94,0.3);background:rgba(34,197,94,0.1);color:#22c55e;font-weight:700;font-size:0.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;font-family:'Inter',sans-serif}
+.popup-nav-btn:hover{background:rgba(34,197,94,0.2)}
+.popup-search-name{font-size:0.85rem;font-weight:600;color:#e2e8f0;margin-bottom:4px;line-height:1.3}
+.popup-search-addr{font-size:0.72rem;color:rgba(255,255,255,0.45);margin-bottom:6px;line-height:1.3}
 
 /* Footer */
 .map-footer{position:fixed;bottom:0;left:0;z-index:999;padding:6px 12px;font-size:0.55rem;color:rgba(255,255,255,0.15);background:rgba(10,15,26,0.7);border-radius:0 6px 0 0}
@@ -517,9 +522,17 @@ searchInput.addEventListener('input', () => {
     searchInput.value = r.name.split(',').slice(0, 2).join(',');
     searchResults.classList.remove('show');
     if (searchMarker) searchMarker.remove();
+    const parts = r.name.split(',');
+    const placeName = parts.slice(0, 2).join(',').trim();
+    const placeAddr = parts.slice(2).join(',').trim();
     searchMarker = new maplibregl.Marker({ element: makeIconEl('/icons/location-pin.svg', 32) })
       .setLngLat([lon, lat])
-      .setPopup(new maplibregl.Popup({ offset: 18 }).setText(r.name))
+      .setPopup(new maplibregl.Popup({ offset: 18, maxWidth: '260px', closeButton: true })
+        .setHTML(`<div class="popup-search-name">${escHtml(placeName)}</div>
+          ${placeAddr ? `<div class="popup-search-addr">${escHtml(placeAddr)}</div>` : ''}
+          <div class="popup-nav">
+            <button class="popup-nav-btn" onclick="navigateTo(${lat},${lon},'${escHtml(placeName).replace(/'/g,"\\'")}')"><img src="/icons/road.svg" class="icon icon-sm" style="filter:brightness(0) saturate(100%) invert(62%) sepia(92%) saturate(385%) hue-rotate(95deg) brightness(96%) contrast(92%)" alt=""> Navigate</button>
+          </div>`))
       .addTo(map);
     searchMarker.togglePopup();
   }), 400);
@@ -563,6 +576,25 @@ function toggleRoutePanel() {
     startCoord = myPos;
     updateGoBtn();
   }
+}
+
+function navigateTo(lat, lng, name) {
+  // Close search popup
+  if (searchMarker) { searchMarker.remove(); searchMarker = null; }
+  // Open route panel
+  const panel = document.getElementById('routePanel');
+  panel.classList.add('show');
+  // Set origin to current location
+  if (myPos) {
+    startInput.value = 'My Location';
+    startCoord = myPos;
+  }
+  // Set destination
+  endInput.value = name;
+  endCoord = { lat, lng };
+  updateGoBtn();
+  // Auto-calculate route
+  calcRoute();
 }
 function closeRoute() {
   document.getElementById('routePanel').classList.remove('show');
