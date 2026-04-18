@@ -139,6 +139,47 @@ body{font-family:'Inter',sans-serif;background:#0a0f1a;overflow:hidden}
 
 body.navigating .topbar,body.navigating .fab,body.navigating .fab-route,body.navigating .report-count,body.navigating .route-panel{display:none!important}
 
+/* Marker picker overlay */
+.marker-picker-overlay{position:fixed;inset:0;z-index:1300;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center}
+.marker-picker-overlay.show{display:flex}
+.marker-picker{background:#0f1729;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:20px;width:320px;max-width:90vw}
+.marker-picker h3{font-size:0.85rem;font-weight:800;color:#fff;text-align:center;margin-bottom:4px}
+.marker-picker .mp-sub{font-size:0.68rem;color:rgba(255,255,255,0.35);text-align:center;margin-bottom:14px}
+.mp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.mp-item{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 4px;border-radius:10px;border:2px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);cursor:pointer;transition:0.15s;user-select:none}
+.mp-item:hover{border-color:rgba(34,197,94,0.3);background:rgba(34,197,94,0.04)}
+.mp-item.selected{border-color:#22c55e;background:rgba(34,197,94,0.1)}
+.mp-item .mp-icon{font-size:1.6rem;line-height:1}
+.mp-item .mp-label{font-size:0.6rem;font-weight:700;color:rgba(255,255,255,0.5)}
+.mp-item.selected .mp-label{color:#22c55e}
+.mp-start{width:100%;padding:12px;border-radius:10px;background:#22c55e;color:#0a0f1a;font-weight:800;font-size:0.88rem;border:none;cursor:pointer;font-family:'Inter',sans-serif;transition:0.15s}
+.mp-start:hover{background:#16a34a}
+.mp-start:active{transform:scale(0.97)}
+
+/* Animated nav markers */
+.anav-marker{position:relative;width:40px;height:40px;display:flex;align-items:center;justify-content:center}
+.anav-emoji{font-size:28px;line-height:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));z-index:2;position:relative}
+.anav-shadow{position:absolute;bottom:-2px;width:20px;height:6px;border-radius:50%;background:rgba(0,0,0,0.35);z-index:1;animation:anavShadow 0.6s ease-in-out infinite alternate}
+.anav-ring{position:absolute;width:40px;height:40px;border-radius:50%;border:2px solid #22c55e;opacity:0.5;animation:anavRing 2s infinite;z-index:0}
+
+/* Bounce animation for vehicle markers */
+.anav-bounce .anav-emoji{animation:anavBounce 0.6s ease-in-out infinite alternate}
+@keyframes anavBounce{0%{transform:translateY(0)}100%{transform:translateY(-5px)}}
+@keyframes anavShadow{0%{transform:scale(1);opacity:0.35}100%{transform:scale(0.7);opacity:0.2}}
+@keyframes anavRing{0%{transform:scale(1);opacity:0.5}100%{transform:scale(2.2);opacity:0}}
+
+/* Wobble animation */
+.anav-wobble .anav-emoji{animation:anavWobble 1s ease-in-out infinite}
+@keyframes anavWobble{0%,100%{transform:rotate(-6deg) translateY(0)}25%{transform:rotate(6deg) translateY(-3px)}50%{transform:rotate(-6deg) translateY(0)}75%{transform:rotate(6deg) translateY(-3px)}}
+
+/* Pulse-grow animation */
+.anav-pulse .anav-emoji{animation:anavPulse 1.2s ease-in-out infinite}
+@keyframes anavPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+
+/* Drive (tilt + bounce) */
+.anav-drive .anav-emoji{animation:anavDrive 0.8s ease-in-out infinite}
+@keyframes anavDrive{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}
+
 @media(max-width:500px){
   .route-panel{left:8px;right:8px;width:auto}
 }
@@ -207,6 +248,16 @@ body.navigating .topbar,body.navigating .fab,body.navigating .fab-route,body.nav
   <div class="sheet-btns">
     <button class="sheet-cancel" onclick="closeReportSheet()">Cancel</button>
     <button class="sheet-submit" id="submitReport" onclick="submitReport()" disabled>Submit Report</button>
+  </div>
+</div>
+
+<!-- Marker picker -->
+<div class="marker-picker-overlay" id="markerPicker">
+  <div class="marker-picker">
+    <h3>Choose Your Navigator</h3>
+    <div class="mp-sub">Pick an animated marker for your trip</div>
+    <div class="mp-grid" id="mpGrid"></div>
+    <button class="mp-start" id="mpGoBtn">Start Navigation</button>
   </div>
 </div>
 
@@ -415,7 +466,7 @@ async function calcRoute() {
 
       const card = document.createElement('div');
       card.className = 'ri-card' + (i === 0 ? ' active' : '');
-      card.innerHTML = `<div class="ri-main"><span class="ri-time">${dur} min</span><span class="ri-dist">${dist} km</span></div><div class="ri-label">Route ${i + 1}${i === 0 ? ' — Fastest' : ''}</div><button class="ri-start" onclick="event.stopPropagation();startNavigation(${i})">▶ Navigate</button>`;
+      card.innerHTML = `<div class="ri-main"><span class="ri-time">${dur} min</span><span class="ri-dist">${dist} km</span></div><div class="ri-label">Route ${i + 1}${i === 0 ? ' — Fastest' : ''}</div><button class="ri-start" onclick="event.stopPropagation();showMarkerPicker(${i})">▶ Navigate</button>`;
       card.dataset.routeIndex = i;
       card.onclick = () => {
         routeLines.forEach((l, j) => l.setStyle({ weight: j === i ? 5 : 3, opacity: j === i ? 0.9 : 0.4, dashArray: j === i ? null : '8 6' }));
@@ -593,9 +644,70 @@ function escHtml(s) {
 
 // ── Navigation ──
 let _navRouteData = []; // store raw route data from OSRM
+let selectedNavMarker = 'car'; // default
 
-// Patch calcRoute to store route data
-const _origCalcRoute = calcRoute;
+const NAV_MARKERS = [
+  { id: 'car',        emoji: '🚗', label: 'Car',        anim: 'anav-drive' },
+  { id: 'suv',        emoji: '🚙', label: 'SUV',        anim: 'anav-drive' },
+  { id: 'motorcycle', emoji: '🏍️', label: 'Moto',       anim: 'anav-bounce' },
+  { id: 'bus',        emoji: '🚌', label: 'Bus',        anim: 'anav-drive' },
+  { id: 'bicycle',    emoji: '🚲', label: 'Bike',       anim: 'anav-wobble' },
+  { id: 'bear',       emoji: '🐻', label: 'Bear',       anim: 'anav-wobble' },
+  { id: 'cat',        emoji: '🐱', label: 'Cat',        anim: 'anav-wobble' },
+  { id: 'dog',        emoji: '🐶', label: 'Dog',        anim: 'anav-bounce' },
+  { id: 'rabbit',     emoji: '🐰', label: 'Rabbit',     anim: 'anav-bounce' },
+  { id: 'rocket',     emoji: '🚀', label: 'Rocket',     anim: 'anav-pulse' },
+  { id: 'ufo',        emoji: '🛸', label: 'UFO',        anim: 'anav-pulse' },
+  { id: 'ghost',      emoji: '👻', label: 'Ghost',      anim: 'anav-pulse' },
+];
+
+// Build marker picker grid
+(function initMarkerPicker() {
+  const grid = document.getElementById('mpGrid');
+  NAV_MARKERS.forEach((m, i) => {
+    const el = document.createElement('div');
+    el.className = 'mp-item' + (i === 0 ? ' selected' : '');
+    el.dataset.id = m.id;
+    el.innerHTML = `<span class="mp-icon">${m.emoji}</span><span class="mp-label">${m.label}</span>`;
+    el.onclick = () => {
+      grid.querySelectorAll('.mp-item').forEach(x => x.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedNavMarker = m.id;
+    };
+    grid.appendChild(el);
+  });
+})();
+
+let _pendingNavRouteIndex = null;
+
+function showMarkerPicker(routeIndex) {
+  _pendingNavRouteIndex = routeIndex;
+  document.getElementById('markerPicker').classList.add('show');
+}
+
+document.getElementById('mpGoBtn').onclick = () => {
+  document.getElementById('markerPicker').classList.remove('show');
+  if (_pendingNavRouteIndex !== null) {
+    startNavigation(_pendingNavRouteIndex);
+    _pendingNavRouteIndex = null;
+  }
+};
+
+// Close picker on overlay click
+document.getElementById('markerPicker').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) {
+    e.currentTarget.classList.remove('show');
+    _pendingNavRouteIndex = null;
+  }
+});
+
+function makeNavIcon(markerId) {
+  const m = NAV_MARKERS.find(x => x.id === markerId) || NAV_MARKERS[0];
+  return L.divIcon({
+    html: `<div class="anav-marker ${m.anim}"><div class="anav-ring"></div><div class="anav-shadow"></div><span class="anav-emoji">${m.emoji}</span></div>`,
+    className: '', iconSize: [40, 40], iconAnchor: [20, 20],
+  });
+}
 
 function startNavigation(routeIndex) {
   if (!_navRouteData[routeIndex]) return;
@@ -639,14 +751,11 @@ function startNavigation(routeIndex) {
     else l.setStyle({ weight: 6, opacity: 1, dashArray: null, color: '#22c55e' });
   });
 
-  // Create nav marker
+  // Create nav marker with selected animated icon
   if (navMarker) map.removeLayer(navMarker);
   const startPos = myPos || { lat: navRouteCoords[0][0], lng: navRouteCoords[0][1] };
   navMarker = L.marker([startPos.lat, startPos.lng], {
-    icon: L.divIcon({
-      html: `<div class="nav-marker"><div class="nav-marker-pulse"></div><div class="nav-marker-dot"></div><div class="nav-marker-heading" id="navHeading"></div></div>`,
-      className: '', iconSize: [20, 20], iconAnchor: [10, 10],
-    }),
+    icon: makeNavIcon(selectedNavMarker),
     zIndexOffset: 1000,
   }).addTo(map);
 
