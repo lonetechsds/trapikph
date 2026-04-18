@@ -407,15 +407,32 @@ const SEV_COLORS = { low: '#22c55e', moderate: '#f59e0b', heavy: '#ef4444' };
 
 // ── Geolocation ──
 function locateMe() {
-  if (!navigator.geolocation) return;
+  if (!navigator.geolocation) {
+    alert('Geolocation is not supported by your browser.');
+    return;
+  }
+  const locBtn = document.querySelector('.locate-btn');
+  locBtn.textContent = '⏳';
   navigator.geolocation.getCurrentPosition(pos => {
     myPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
     map.setView([myPos.lat, myPos.lng], 15);
     if (myMarker) map.removeLayer(myMarker);
-    myMarker = L.circleMarker([myPos.lat, myPos.lng], {
-      radius: 8, fillColor: '#3b82f6', fillOpacity: 1, color: '#fff', weight: 2,
+    myMarker = L.marker([myPos.lat, myPos.lng], {
+      icon: L.divIcon({
+        html: `<div style="position:relative;width:24px;height:24px">
+          <div style="width:24px;height:24px;border-radius:50%;background:rgba(59,130,246,0.2);position:absolute;animation:navPulse 2s infinite"></div>
+          <div style="width:14px;height:14px;border-radius:50%;background:#3b82f6;border:3px solid #fff;box-shadow:0 0 8px rgba(59,130,246,0.5);position:absolute;top:5px;left:5px"></div>
+        </div>`,
+        className: '', iconSize: [24, 24], iconAnchor: [12, 12],
+      }),
     }).addTo(map).bindPopup('You are here');
-  }, () => {}, { enableHighAccuracy: true });
+    locBtn.textContent = '📍';
+  }, (err) => {
+    locBtn.textContent = '📍';
+    if (err.code === 1) alert('Location access denied. Please enable GPS/location permission.');
+    else if (err.code === 2) alert('Location unavailable. Make sure GPS is enabled.');
+    else alert('Location request timed out. Try again.');
+  }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 });
 }
 locateMe(); // auto-locate on load
 
